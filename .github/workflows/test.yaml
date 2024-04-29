@@ -22,9 +22,11 @@ jobs:
       - name: Try the cluster
         run: kubectl get pods -A
 
+      - name: Setup Docker environment
+        run: eval $(minikube -p minikube docker-env)
+
       - name: Build image
         run: |
-          eval $(minikube -p minikube docker-env)
           make build-image
           docker images
 
