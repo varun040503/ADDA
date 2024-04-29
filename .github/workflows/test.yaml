@@ -1,31 +1,39 @@
 name: CI
+
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-  job1:
+  build-discover-deploy:
     runs-on: ubuntu-latest
-    name: build discover and deploy
+    name: Build, discover, and deploy
     steps:
-      - uses: actions/checkout@v2
-      - name: Start minikube
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Start Minikube
         uses: medyagh/setup-minikube@latest
-      # now you can run kubectl to see the pods in the cluster
-      - name: Try the cluster!
+
+      - name: Try the cluster
         run: kubectl get pods -A
+
       - name: Build image
         run: |
-          export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
           make build-image
-          echo -n "verifying images:"
           docker images
-      - name: Deploy to minikube
-        run: |
-          kubectl apply -f deploy/deploy-minikube.yaml
+
+      - name: Deploy to Minikube
+        run: kubectl apply -f deploy/deploy-minikube.yaml
+
       - name: Test service URLs
         run: |
           minikube service list
           minikube service discover --url
-          echo -n "------------------opening the service------------------"
-          curl $(minikube service discover --url)/version
+          echo "Opening the service..."
+          curl "$(minikube service discover --url)/version"
